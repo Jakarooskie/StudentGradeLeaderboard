@@ -1,1 +1,111 @@
+/*
+ * Project: Student Leaderboard
+ * Author: Jacob Vescio
+ * Date: 2026-03-28
+ * Description: 
+ *   This program creates a leaderboard for students based on their grades.
+ *   Users can input up to 100 students, including their names and grades.
+ *   The leaderboard can be displayed either from Highest to Lowest or Lowest to Highest.
+ */
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+// Max number of students allowed
+#define MAX_STUDENTS 100
+
+// Player struct to store each student's name and grade
+typedef struct { 
+    char name[20];   // Student's name (max 19 characters + null terminator)
+    int grade;       // Student's grade (integer)
+} Player;
+
+int main() { 
+    int n; // Number of students
+
+    // Ask user for number of students
+    printf("How many students?");
+    scanf("%d", &n);
+
+    // Check if user entered too many students
+    if (n > MAX_STUDENTS) {
+        printf("TOO MANY STUDENTS! Max is %d\n", MAX_STUDENTS);
+        exit(1); // Exit program if over max
+    }
+
+    // Create an array of Player structs to store all students
+    Player players[MAX_STUDENTS];
+
+    // --------------------------
+    // Input student data
+    // --------------------------
+    for (int i = 0; i < n; i++) {
+        printf("Student %d's name is: ", i + 1);
+        while (getchar() != '\n');             // Clear input buffer before fgets
+        fgets(players[i].name, 20, stdin);     // Read full name (supports spaces)
+        players[i].name[strcspn(players[i].name, "\n")] = 0; // Remove trailing newline
+
+        printf("Student %d's grade: ", i + 1);
+        scanf("%d", &players[i].grade);        // Read student's grade
+    }
+
+    // ---------------------------------------
+    // Ask user how to display the leaderboard
+    // ---------------------------------------
+    int a; 
+    printf("How do you want the Leaderboard Displayed?\n");
+    printf("1 = Highest to Lowest, 0 = Lowest to Highest: ");
+    scanf("%d", &a);
+
+    // --------------------------------------
+    // Sort the leaderboard using bubble sort
+    // --------------------------------------
+    switch(a) {
+        case 1: // Sort from Highest to Lowest
+            for (int i = 0; i < n - 1; i++) {
+                for (int j = 0; j < n - i - 1; j++) {
+                    if (players[j].grade < players[j + 1].grade) { 
+                        Player temp = players[j];
+                        players[j] = players[j + 1];
+                        players[j + 1] = temp;
+                    }
+                }
+            }
+            break;
+
+        case 0: // Sort from Lowest to Highest
+            for (int i = 0; i < n - 1; i++) {
+                for (int j = 0; j < n - i - 1; j++) {
+                    if (players[j].grade > players[j + 1].grade) { 
+                        Player temp = players[j];
+                        players[j] = players[j + 1];
+                        players[j + 1] = temp;
+                    }
+                }
+            }
+            break;
+
+        default: // Report invalid input
+            printf("Invalid choice, displaying Highest to Lowest by default.\n");
+            for (int i = 0; i < n - 1; i++) {
+                for (int j = 0; j < n - i - 1; j++) {
+                    if (players[j].grade < players[j + 1].grade) { 
+                        Player temp = players[j];
+                        players[j] = players[j + 1];
+                        players[j + 1] = temp;
+                    }
+                }
+            }
+    }
+
+    // ---------------------------
+    // Print the final leaderboard
+    // ---------------------------
+    printf("---Leaderboard---\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d - %s - %d\n", i + 1, players[i].name, players[i].grade);
+    }
+
+    return 0; // End of program
+}

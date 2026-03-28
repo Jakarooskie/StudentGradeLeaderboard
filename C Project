@@ -1,3 +1,4 @@
+
 /*
  * Project: Student Leaderboard
  * Author: Jacob Vescio
@@ -17,24 +18,52 @@
 
 // Player struct to store each student's name and grade
 typedef struct { 
-    char name[20];   // Student's name (max 19 characters + null terminator)
-    int grade;       // Student's grade (integer)
+    char name[20];  // Student's name (max 19 characters + null terminator)
+    int grade;      // Student's grade (0 - 100)
 } Player;
 
+/*
+ * leaderboardSort - Sorts the players array using bubble sort
+ * Parameters:
+ *   players[]  - Array of Player structs to sort
+ *   n          - Number of students in the array
+ *   descending - 1 = Highest to Lowest, 0 = Lowest to Highest
+ */
+void leaderboardSort(Player players[], int n, int descending) {
+    for (int i = 0; i < n - 1; i++) {          // Outer loop: each pass guarantees one more element is in place
+        for (int j = 0; j < n - i - 1; j++) {  // Inner loop: compare adjacent elements, shrinks each pass
+            
+            // Ternary operator: picks direction of leaderboard based off of value of a.
+            // descending=1 → swap if left grade is LESS than right (push higher grades left)
+            // descending=0 → swap if left grade is GREATER than right (push lower grades left)
+            int shouldSwap = descending
+                ? players[j].grade < players[j + 1].grade
+                : players[j].grade > players[j + 1].grade;
+
+            if (shouldSwap) {
+                // Swap the two adjacent players using a temporary variable
+                Player temp = players[j];
+                players[j] = players[j + 1];
+                players[j + 1] = temp;
+            }
+        }
+    }
+}
+
 int main() { 
-    int n; // Number of students
+    int n; // Number of students to input
 
     // Ask user for number of students
-    printf("How many students?");
+    printf("How many students? ");
     scanf("%d", &n);
 
-    // Check if user entered too many students
+    // Validate: reject input over the max limit
     if (n > MAX_STUDENTS) {
         printf("TOO MANY STUDENTS! Max is %d\n", MAX_STUDENTS);
-        exit(1); // Exit program if over max
+        exit(1);
     }
 
-    // Create an array of Player structs to store all students
+    // Declare array of Player structs to hold all student data
     Player players[MAX_STUDENTS];
 
     // --------------------------
@@ -42,61 +71,35 @@ int main() {
     // --------------------------
     for (int i = 0; i < n; i++) {
         printf("Student %d's name is: ", i + 1);
-        while (getchar() != '\n');             // Clear input buffer before fgets
-        fgets(players[i].name, 20, stdin);     // Read full name (supports spaces)
-        players[i].name[strcspn(players[i].name, "\n")] = 0; // Remove trailing newline
+        while (getchar() != '\n');                              // Flush input buffer so fgets works correctly
+        fgets(players[i].name, 20, stdin);                     // Read full name (supports spaces)
+        players[i].name[strcspn(players[i].name, "\n")] = 0;  // Delete trailing newline left by fgets
 
-        printf("Student %d's grade: ", i + 1);
-        scanf("%d", &players[i].grade);        // Read student's grade
+        // Keep asking until a valid grade (0-100) is entered
+        do {
+            printf("Student %d's grade: ", i + 1);
+            scanf("%d", &players[i].grade);
+            if (players[i].grade < 0 || players[i].grade > 100) {
+                printf("INVALID! Enter a grade between 0 and 100\n");
+            }
+        } while (players[i].grade < 0 || players[i].grade > 100);
     }
 
     // ---------------------------------------
     // Ask user how to display the leaderboard
     // ---------------------------------------
-    int a; 
+    int a;
     printf("How do you want the Leaderboard Displayed?\n");
     printf("1 = Highest to Lowest, 0 = Lowest to Highest: ");
     scanf("%d", &a);
 
-    // --------------------------------------
-    // Sort the leaderboard using bubble sort
-    // --------------------------------------
-    switch(a) {
-        case 1: // Sort from Highest to Lowest
-            for (int i = 0; i < n - 1; i++) {
-                for (int j = 0; j < n - i - 1; j++) {
-                    if (players[j].grade < players[j + 1].grade) { 
-                        Player temp = players[j];
-                        players[j] = players[j + 1];
-                        players[j + 1] = temp;
-                    }
-                }
-            }
-            break;
-
-        case 0: // Sort from Lowest to Highest
-            for (int i = 0; i < n - 1; i++) {
-                for (int j = 0; j < n - i - 1; j++) {
-                    if (players[j].grade > players[j + 1].grade) { 
-                        Player temp = players[j];
-                        players[j] = players[j + 1];
-                        players[j + 1] = temp;
-                    }
-                }
-            }
-            break;
-
-        default: // Report invalid input
-            printf("Invalid choice, displaying Highest to Lowest by default.\n");
-            for (int i = 0; i < n - 1; i++) {
-                for (int j = 0; j < n - i - 1; j++) {
-                    if (players[j].grade < players[j + 1].grade) { 
-                        Player temp = players[j];
-                        players[j] = players[j + 1];
-                        players[j + 1] = temp;
-                    }
-                }
-            }
+    // Call sort function with user's choice
+    // If input is invalid, default to descending (1)
+    if (a == 1 || a == 0) {
+        leaderboardSort(players, n, a);  // Pass a directly — 1 or 0 becomes the descending parameter
+    } else {
+        printf("Invalid choice, displaying Highest to Lowest by default\n");
+        leaderboardSort(players, n, 1);  // Hardcode 1 since user input can't be trusted
     }
 
     // ---------------------------
@@ -104,8 +107,8 @@ int main() {
     // ---------------------------
     printf("---Leaderboard---\n");
     for (int i = 0; i < n; i++) {
-        printf("%d - %s - %d\n", i + 1, players[i].name, players[i].grade);
+        printf("%d - %s - %d\n", i + 1, players[i].name, players[i].grade); // Rank - Name - Grade
     }
 
-    return 0; // End of program
+    return 0;
 }
